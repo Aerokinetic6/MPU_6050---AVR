@@ -3,7 +3,7 @@
 #ifndef _I2C_H
 #define _I2C_H
 
-	void i2c_init();
+	void I2C_init();
 	unsigned char i2c_start(unsigned char adress);
 	void i2c_start_wait(unsigned char address);
 	unsigned char i2c_rep_start(unsigned char address);

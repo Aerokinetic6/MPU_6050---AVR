@@ -11,7 +11,7 @@
  Initialization of the I2C bus interface. Need to be called only once
 
 *************************************************************************/
-void i2c_init(void)
+void I2C_init(void)
 {
     TWSR = 0;                         /* no prescaler */
 	TWBR = ((F_CPU / SCL_CLOCK)-16)/2;  /* must be > 10 for stable operation */

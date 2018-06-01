@@ -1,6 +1,6 @@
 #MACROS
-TARGET_C = mpu_testing.c i2c.c
-TARGET_O = mpu_testing.o i2c.o
+TARGET_C = mpu_testing.c i2c.c uart0.c
+TARGET_O = mpu_testing.o i2c.o uart0.o
 TARGET_E = mpu.elf
 TARGET_H = mpu.hex
 TARGET_F = flash:w:mpu.hex:i
