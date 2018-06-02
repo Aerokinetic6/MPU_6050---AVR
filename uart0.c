@@ -53,12 +53,11 @@ void UART_snd_str(unsigned char *p)
 
 void UART_snd_int(unsigned int i)
 {
-
-	UART_snd_byte('0'+i/100000%10);
-	UART_snd_byte('0'+i/10000%10);
-	UART_snd_byte('0'+i/1000%10);
-	UART_snd_byte('0'+i/100%10);
-	UART_snd_byte('0'+i/10%10);
+        if (i >= 100000) UART_snd_byte('0'+i/100000%10);
+	if (i >= 10000) UART_snd_byte('0'+i/10000%10);
+	if (i >= 1000) UART_snd_byte('0'+i/1000%10);
+	if (i >= 100) UART_snd_byte('0'+i/100%10);
+	if (i >= 10) UART_snd_byte('0'+i/10%10);
 	UART_snd_byte('0'+i%10);
 
 

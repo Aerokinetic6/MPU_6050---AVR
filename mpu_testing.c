@@ -20,8 +20,7 @@ void segm_out();
 
 uint8_t szam[4];
 uint8_t t = 0;
-
-uint16_t gyro_X, gyro_Y, gyro_Z, accel_X, accel_Y, accel_Z;
+signed int gyro_X, gyro_Y, gyro_Z, accel_X, accel_Y, accel_Z;
 
 int main()
 {
@@ -39,25 +38,36 @@ int main()
 	
 	  read_MPU();
 	
-	  led_out(t);
-	  
+	accel_X = 65535- accel_X;
 	  
 	  if (t > 80) {
+	  
 	    UART_snd_byte (12);
-	    UART_snd_int(accel_X);
-	    UART_snd_str("\t");
-	    UART_snd_int(accel_Y);
-	    UART_snd_str("\t");
-	    UART_snd_int(accel_Z);
+	    if(accel_X < 0) {UART_snd_byte('-'); UART_snd_int((65535-accel_X));}
+	    else { UART_snd_int(accel_X);}
+	    UART_snd_str("\t\t");
+	    
+	    if(accel_Y < 0) {UART_snd_byte('-'); UART_snd_int((65535-accel_Y));}
+	    else { UART_snd_int(accel_Y);}
+	    UART_snd_str("\t\t");
+	    
+	    if(accel_Z < 0) {UART_snd_byte('-'); UART_snd_int((65535-accel_Z)); led_out(0x99);}
+	    else { UART_snd_int(accel_Z);}
 	    UART_snd_str("\n");
 	    UART_snd_str("\n\r");
 	    
-	    UART_snd_int(gyro_X);
-	    UART_snd_str("\t");
-	    UART_snd_int(gyro_Y);
-	    UART_snd_str("\t");
-	    UART_snd_int(gyro_Z);
-	    UART_snd_str("\n\r");
+	    if(gyro_X < 0) {UART_snd_byte('-'); UART_snd_int((65535-gyro_X));}
+	    else { UART_snd_int(gyro_X);}
+	    UART_snd_str("\t\t");
+	    
+	    if(gyro_Y < 0) {UART_snd_byte('-'); UART_snd_int((65535-gyro_Y));}
+	    else { UART_snd_int(gyro_Y);}
+	    UART_snd_str("\t\t");
+	    
+	    
+	    if(gyro_Z < 0) {UART_snd_byte('-'); UART_snd_int((65535-gyro_Z));}
+	    else { UART_snd_int(gyro_Z);}
+	    
 	    t=0;
 	  }
 	 //UART_snd_str("\r");
@@ -125,6 +135,7 @@ void read_MPU()
         gyro_X = I2C_RD(MPU_ADDR, GYRO_XOUT_H);
         gyro_X = gyro_X << 8;
         gyro_X = gyro_X | I2C_RD(MPU_ADDR, GYRO_XOUT_L);
+        
         
         gyro_Y = I2C_RD(MPU_ADDR, GYRO_YOUT_H);
         gyro_Y = gyro_Y << 8;
