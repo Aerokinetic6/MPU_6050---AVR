@@ -23,9 +23,9 @@ void segm_out();
 uint8_t szam[4];
 uint8_t t = 0;
 signed int gyro_X, gyro_Y, gyro_Z, accel_X, accel_Y, accel_Z;
-float angle_X_GYR, angle_Y_GYR, angle_Z_GYR;
-float angle_X_ACC, angle_Y_ACC, angle_Z_ACC;
-float angle_X, angle_Y, angle_Z;
+float angle_X_GYR, angle_Y_GYR, angle_Z_GYR;  // angle pos. by GYRO (drifting)
+float angle_X_ACC, angle_Y_ACC, angle_Z_ACC; // angle pos by ACCEL (unstable?)
+float angle_X, angle_Y, angle_Z;             //Filtered angle positions
 
 int main()
 {
@@ -43,9 +43,9 @@ int main()
 	
 	  read_MPU();
 	
-	  angle_X_GYR += (float)gyro_X/8200; 
-	  angle_Y_GYR += (float)gyro_Y/8200; 
-	  angle_Z_GYR += (float)gyro_Z/8200; 
+	  angle_X_GYR += (float)gyro_X/2000; 
+	  angle_Y_GYR += (float)gyro_Y/2000; 
+	  angle_Z_GYR += (float)gyro_Z/2000; 
 	  
 	  angle_X_ACC = ((atan2f(accel_Y, accel_Z))*180)/PI;
 	  angle_Y_ACC = ((atan2f(accel_X, accel_Z))*180)/PI;
@@ -86,9 +86,12 @@ int main()
 	    if(gyro_Z < 0) { UART_snd_byte('-'); UART_snd_int((65535-gyro_Z)); }
 	    else { UART_snd_int(gyro_Z); }
 	    UART_snd_str("\n");
+	    UART_snd_str("\n");
+	    UART_snd_str("\n");
 	    UART_snd_str("\n\r");
 	    
 	    //ANGLES PRINT
+	        //GYRO discretly integrated angle position values:
 	    if (angle_X_GYR < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_X_GYR); } 
 	    else UART_snd_float(angle_X_GYR);
 	    UART_snd_str("\t\t");
@@ -101,8 +104,8 @@ int main()
 	    else UART_snd_float(angle_Z_GYR);
 	    UART_snd_str("\n");
 	    UART_snd_str("\n\r");
-	    
-	    
+        	    
+                //ACCEL arctan() from G reference vector angel position values: 	    
 	    if (angle_X_ACC < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_X_ACC); } 
 	    else UART_snd_float(angle_X_ACC);
 	    UART_snd_str("\t\t");
@@ -110,13 +113,14 @@ int main()
 	    if (angle_Y_ACC < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_Y_ACC); } 
 	    else UART_snd_float(angle_Y_ACC);
 	    UART_snd_str("\t\t");
-	    
-	    
+	    	    
 	    UART_snd_str("???");
 	    
 	    UART_snd_str("\n");
 	    UART_snd_str("\n\r");
 	    
+	    
+	        //FILTERED (complementary) angle pos. values: 
 	    if (angle_X < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_X); } 
 	    else UART_snd_float(angle_X);
 	    UART_snd_str("\t\t");
