@@ -64,3 +64,23 @@ void UART_snd_int(unsigned int i)
 
 
 }
+
+
+void UART_snd_float(float f)
+{
+        if (f >= 1000) UART_snd_byte('0'+(int)f/1000%10);
+        if (f >= 100) UART_snd_byte('0'+(int)f/100%10);       
+        if (f >= 10) UART_snd_byte('0'+(int)f/10%10);
+        UART_snd_byte('0'+(int)f%10);
+        
+        UART_snd_byte('.');
+        
+        //f = (f-(int)f)*100;
+        f = f*100-100*(int)f;
+        UART_snd_byte('0'+(int)f/10%10);
+        if (((int)f%10) > 0) UART_snd_byte('0'+(int)f%10);
+        
+}
+
+
+

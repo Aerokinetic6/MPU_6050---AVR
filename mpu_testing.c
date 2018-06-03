@@ -1,4 +1,5 @@
 #define F_CPU 16000000
+#define PI 3.14159265359
 #include <avr/io.h>
 #include <util/delay.h>
 #include <avr/interrupt.h>
@@ -7,6 +8,7 @@
 #include "i2c.h"
 #include "mpu.h"
 #include "uart.h"
+
 
 
 
@@ -21,6 +23,7 @@ void segm_out();
 uint8_t szam[4];
 uint8_t t = 0;
 signed int gyro_X, gyro_Y, gyro_Z, accel_X, accel_Y, accel_Z;
+float angle_X, angle_Y, angle_Z;
 
 int main()
 {
@@ -32,48 +35,67 @@ int main()
 	TIMER2_init();
 	MPU_init();
 	
-	sei();	
+	//sei();	
 	
 	while(1){
 	
 	  read_MPU();
 	
-	accel_X = 65535- accel_X;
+	  angle_X = angle_X+((float)gyro_X/820); 
+	  angle_Y = angle_Y+((float)gyro_Y/820); 
+	  angle_Z = angle_Z+((float)gyro_Z/820); 
+		
+	  led_out(t);
 	  
-	  if (t > 80) {
+	  if (t > 10) {
 	  
 	    UART_snd_byte (12);
-	    if(accel_X < 0) {UART_snd_byte('-'); UART_snd_int((65535-accel_X));}
-	    else { UART_snd_int(accel_X);}
+	    if(accel_X < 0) { UART_snd_byte('-'); UART_snd_int((65535-accel_X)); }
+	    else { UART_snd_int(accel_X); }
 	    UART_snd_str("\t\t");
 	    
-	    if(accel_Y < 0) {UART_snd_byte('-'); UART_snd_int((65535-accel_Y));}
-	    else { UART_snd_int(accel_Y);}
+	    if(accel_Y < 0) { UART_snd_byte('-'); UART_snd_int((65535-accel_Y)); }
+	    else { UART_snd_int(accel_Y); }
 	    UART_snd_str("\t\t");
 	    
-	    if(accel_Z < 0) {UART_snd_byte('-'); UART_snd_int((65535-accel_Z)); led_out(0x99);}
-	    else { UART_snd_int(accel_Z);}
+	    if(accel_Z < 0) { UART_snd_byte('-'); UART_snd_int((65535-accel_Z)); }
+	    else { UART_snd_int(accel_Z); }
 	    UART_snd_str("\n");
 	    UART_snd_str("\n\r");
 	    
-	    if(gyro_X < 0) {UART_snd_byte('-'); UART_snd_int((65535-gyro_X));}
-	    else { UART_snd_int(gyro_X);}
+	    if(gyro_X < 0) { UART_snd_byte('-'); UART_snd_int((65535-gyro_X)); }
+	    else { UART_snd_int(gyro_X); }
 	    UART_snd_str("\t\t");
 	    
-	    if(gyro_Y < 0) {UART_snd_byte('-'); UART_snd_int((65535-gyro_Y));}
-	    else { UART_snd_int(gyro_Y);}
+	    if(gyro_Y < 0) { UART_snd_byte('-'); UART_snd_int((65535-gyro_Y)); }
+	    else { UART_snd_int(gyro_Y); }
 	    UART_snd_str("\t\t");
 	    
 	    
-	    if(gyro_Z < 0) {UART_snd_byte('-'); UART_snd_int((65535-gyro_Z));}
-	    else { UART_snd_int(gyro_Z);}
+	    if(gyro_Z < 0) { UART_snd_byte('-'); UART_snd_int((65535-gyro_Z)); }
+	    else { UART_snd_int(gyro_Z); }
+	    UART_snd_str("\n");
+	    UART_snd_str("\n\r");
 	    
+	    //ANGLES PRINT
+	    if (angle_X < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_X); } 
+	    else UART_snd_float(angle_X);
+	    UART_snd_str("\t\t");
+	    
+	    if (angle_Y < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_Y); } 
+	    else UART_snd_float(angle_Y);
+	    UART_snd_str("\t\t");
+	    
+	    if (angle_Z < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_Z); } 
+	    else UART_snd_float(angle_Z);
+	    
+	    	    
 	    t=0;
 	  }
-	 //UART_snd_str("\r");
-	  
+	 t++;
+	 _delay_ms(10); 
           
-	  
+	  //atan2(200,100);
 	  
 	
 		
@@ -123,27 +145,32 @@ void read_MPU()
         accel_X = I2C_RD(MPU_ADDR, ACCEL_XOUT_H);
         accel_X = accel_X << 8;
         accel_X = accel_X | I2C_RD(MPU_ADDR, ACCEL_XOUT_L);
+        accel_X = accel_X-ACC_X_OFFSET;
         
         accel_Y = I2C_RD(MPU_ADDR, ACCEL_YOUT_H);
         accel_Y = accel_Y << 8;
         accel_Y = accel_Y | I2C_RD(MPU_ADDR, ACCEL_YOUT_L);
+        accel_Y = accel_Y-ACC_Y_OFFSET;
         
         accel_Z = I2C_RD(MPU_ADDR, ACCEL_ZOUT_H);
         accel_Z = accel_Z << 8;
         accel_Z = accel_Z | I2C_RD(MPU_ADDR, ACCEL_ZOUT_L);
+        accel_Z = accel_Z-ACC_Z_OFFSET;
         
         gyro_X = I2C_RD(MPU_ADDR, GYRO_XOUT_H);
         gyro_X = gyro_X << 8;
         gyro_X = gyro_X | I2C_RD(MPU_ADDR, GYRO_XOUT_L);
-        
+        gyro_X = gyro_X-GYRO_X_OFFSET;
         
         gyro_Y = I2C_RD(MPU_ADDR, GYRO_YOUT_H);
         gyro_Y = gyro_Y << 8;
         gyro_Y = gyro_Y | I2C_RD(MPU_ADDR, GYRO_YOUT_L);
+        gyro_Y = gyro_Y-GYRO_Y_OFFSET;
         
         gyro_Z = I2C_RD(MPU_ADDR, GYRO_ZOUT_H);
         gyro_Z = gyro_Z << 8;
         gyro_Z = gyro_Z | I2C_RD(MPU_ADDR, GYRO_ZOUT_L);
+        gyro_Z = gyro_Z-GYRO_Z_OFFSET;
 }
 
 void led_out(uint8_t led)

@@ -18,4 +18,5 @@ unsigned char UartReadByte();
 void UART_snd_int(unsigned int i);
 void UART_snd_str(unsigned char *p);
 void UART_snd_byte (unsigned char byte);
+void UART_snd_float(float f);
 #endif

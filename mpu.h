@@ -32,3 +32,14 @@
 
 #define PWR_MGMT_1      0x6B
 
+
+////////--- OFFSETS ----///////
+
+#define ACC_X_OFFSET    -850
+#define ACC_Y_OFFSET    -650
+#define ACC_Z_OFFSET    4266
+
+#define GYRO_X_OFFSET   -70
+#define GYRO_Y_OFFSET   -30
+#define GYRO_Z_OFFSET   10
+
