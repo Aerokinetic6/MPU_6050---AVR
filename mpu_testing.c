@@ -23,6 +23,8 @@ void segm_out();
 uint8_t szam[4];
 uint8_t t = 0;
 signed int gyro_X, gyro_Y, gyro_Z, accel_X, accel_Y, accel_Z;
+float angle_X_GYR, angle_Y_GYR, angle_Z_GYR;
+float angle_X_ACC, angle_Y_ACC, angle_Z_ACC;
 float angle_X, angle_Y, angle_Z;
 
 int main()
@@ -41,13 +43,22 @@ int main()
 	
 	  read_MPU();
 	
-	  angle_X = angle_X+((float)gyro_X/820); 
-	  angle_Y = angle_Y+((float)gyro_Y/820); 
-	  angle_Z = angle_Z+((float)gyro_Z/820); 
+	  angle_X_GYR += (float)gyro_X/8200; 
+	  angle_Y_GYR += (float)gyro_Y/8200; 
+	  angle_Z_GYR += (float)gyro_Z/8200; 
+	  
+	  angle_X_ACC = ((atan2f(accel_Y, accel_Z))*180)/PI;
+	  angle_Y_ACC = ((atan2f(accel_X, accel_Z))*180)/PI;
+	  
+	  angle_X += (float)gyro_X/8200;
+	  angle_Y += (float)gyro_Y/8200;
+	  
+	  angle_X = 0.98*angle_X + 0.02*angle_X_ACC;
+	  angle_Y = 0.98*angle_Y + 0.02*angle_Y_ACC;
 		
 	  led_out(t);
 	  
-	  if (t > 10) {
+	  if (t > 50) {
 	  
 	    UART_snd_byte (12);
 	    if(accel_X < 0) { UART_snd_byte('-'); UART_snd_int((65535-accel_X)); }
@@ -78,6 +89,34 @@ int main()
 	    UART_snd_str("\n\r");
 	    
 	    //ANGLES PRINT
+	    if (angle_X_GYR < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_X_GYR); } 
+	    else UART_snd_float(angle_X_GYR);
+	    UART_snd_str("\t\t");
+	    
+	    if (angle_Y_GYR < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_Y_GYR); } 
+	    else UART_snd_float(angle_Y_GYR);
+	    UART_snd_str("\t\t");
+	    
+	    if (angle_Z_GYR < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_Z_GYR); } 
+	    else UART_snd_float(angle_Z_GYR);
+	    UART_snd_str("\n");
+	    UART_snd_str("\n\r");
+	    
+	    
+	    if (angle_X_ACC < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_X_ACC); } 
+	    else UART_snd_float(angle_X_ACC);
+	    UART_snd_str("\t\t");
+	    	    
+	    if (angle_Y_ACC < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_Y_ACC); } 
+	    else UART_snd_float(angle_Y_ACC);
+	    UART_snd_str("\t\t");
+	    
+	    
+	    UART_snd_str("???");
+	    
+	    UART_snd_str("\n");
+	    UART_snd_str("\n\r");
+	    
 	    if (angle_X < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_X); } 
 	    else UART_snd_float(angle_X);
 	    UART_snd_str("\t\t");
@@ -86,16 +125,16 @@ int main()
 	    else UART_snd_float(angle_Y);
 	    UART_snd_str("\t\t");
 	    
-	    if (angle_Z < 0.01) { UART_snd_byte('-'); UART_snd_float((-1)*angle_Z); } 
-	    else UART_snd_float(angle_Z);
+	    
+	    UART_snd_str("???");
 	    
 	    	    
 	    t=0;
 	  }
 	 t++;
-	 _delay_ms(10); 
+	 _delay_ms(1); 
           
-	  //atan2(200,100);
+	  
 	  
 	
 		
