@@ -4,6 +4,7 @@ use Tk;
 use threads;
 use threads::shared;
 use Device::SerialPort;
+use Time::HiRes qw(usleep nanosleep);
 use OpenGL::Modern;
   BEGIN{ unshift(@INC,"../blib");} # in case OpenGL is built but not installed
 use OpenGL;
@@ -16,6 +17,8 @@ my $angle_Z : shared = '';
 my $x : shared = 0;
 my $y : shared = 0;
 my $z : shared = 0;
+my $r : shared = 0;
+my $cnt : shared = 1;
 
 my $sp = Device::SerialPort->new("/dev/ttyUSB1");
 die "Can't open /dev/ttyUSB1: $!" if ! defined $sp;
@@ -75,12 +78,14 @@ sub thr1
 #************
 sub thr2
 {
-  $mw = MainWindow -> new();
+  $mw = MainWindow -> new(-bg => black);
 
   $mw -> geometry("1020x680");
+  $mw-> waitVisibility;
 
-  $cv=$mw->Canvas(-width=>1000, -height=>670,
-                                -background => 'black')->place(-x=>5, -y=>5);
+  $cv=$mw->Canvas(-width=>1025, -height=>300, -borderwidth=>0, -bd=>0,
+                                -highlightthickness=>0, -relief=>'ridge',
+                                -bg => 'black')->place(-x=>0, -y=>0);
 
   #$ln = $cv -> createLine(20,20,80,80, -fill => red, width => 2);
   $arc1 = $cv -> createArc(20,20,200,200, -outline => blue, -extent => 180,
@@ -91,6 +96,16 @@ sub thr2
 
   $arc3 = $cv -> createArc(620,20,800,200, -outline => blue, -extent => 180,
                                          -start => $z);
+
+
+
+  $ogl = glpOpenWindow(parent=> hex($mw->id), width => 450, height => 450,
+   x =>250, y => 220);
+
+
+  glShadeModel(GL_FLAT);
+  myReshape();
+  display();
 
   #---------------
   #- TEXT LABELS -
@@ -115,7 +130,7 @@ sub thr2
   $lz->place(-x => 705, -y => 150);
 
 
-  $mw-> repeat(5, \&move);
+  $mw-> repeat(1, \&move);
 
   MainLoop();
 
@@ -129,7 +144,70 @@ sub thr2
     $lz ->configure (-text => $z);
     #$mw->update();
 
-   }
+    if($r<720){
+    $r++;}
+    display();
+  }
 
 
-}
+  sub wirecube{
+      # adapted from libaux
+      local($s) = @_;
+      local(@x,@y,@z,@f);
+      local($i,$j,$k);
+      $s = $s/2.0;
+      @x=(-$s,-$s,-$s,-$s,$s,$s,$s,$s);
+      @y=(-$s,-$s,$s,$s,-$s,-$s,$s,$s);
+      @z=(-$s,$s,$s,-$s,-$s,$s,$s,-$s);
+      @f=(
+  	0, 1, 2, 3,
+  	3, 2, 6, 7,
+  	7, 6, 5, 4,
+  	4, 5, 1, 0,
+  	5, 6, 2, 1,
+  	7, 4, 0, 3,
+  	);
+      for($i=0;$i<6;$i++){
+          glBegin(GL_LINE_LOOP);
+  	for($j=0;$j<4;$j++){
+  		$k=$f[$i*4+$j];
+  		glVertex3d($x[$k],$y[$k],$z[$k]);
+  	}
+          glEnd();
+      }
+  }
+
+
+  sub display{
+      glClear(GL_COLOR_BUFFER_BIT);
+      glColor3f(1.0, 0.0, 0.0);
+      glLoadIdentity();	#  clear the matrix
+
+      #kp körül rotálás.. ($r:angle, x , y, z)
+      glTranslatef(0.0, 0.0, -5.0);
+      glRotatef($x, 1.0, 0.0, 0.0);
+      glRotatef($y, 0.0, 0.0, 1.0);
+      glRotatef($z, 0.0, 1.0, 0.0);
+      glTranslatef(0.0, 0.0, 0.0);
+
+
+      	#  viewing transformation
+
+      glScalef(1.5, 0.6, 1.5);	#  modeling transformation
+      wirecube(1.7);
+      glpFlush();
+  }
+
+
+  sub myReshape {
+      # glViewport(0, 0, w, h);
+      glMatrixMode(GL_PROJECTION);
+      glLoadIdentity();
+      glFrustum(-1.0, 1.0, -1.0, 1.0, 1.5, 20.0);
+      glMatrixMode(GL_MODELVIEW);
+      glLoadIdentity ();
+  }
+
+
+
+}#thr2
